@@ -1,0 +1,38 @@
+services:
+  jwt-proxy:
+    build: .
+    container_name: jwt-proxy
+    ports:
+      - "3000:3000"
+    environment:
+      - JWT_SECRET=${JWT_SECRET}
+      - TARGET_URL=${TARGET_URL:-http://backend:8080}
+      - LISTEN_ADDR=:3000
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - proxy-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Example backend service (replace with your PHP/Perl service)
+  backend:
+    image: nginx:alpine
+    container_name: backend
+    ports:
+      - "8080:80"
+    volumes:
+      - ./config/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./html:/usr/share/nginx/html:ro
+    networks:
+      - proxy-network
+    restart: unless-stopped
+
+networks:
+  proxy-network:
+    driver: bridge
