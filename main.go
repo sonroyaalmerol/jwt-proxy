@@ -218,7 +218,6 @@ func main() {
 		proxy.ServeHTTP(w, r)
 	})
 
-	// Create server with timeouts
 	server := &http.Server{
 		Addr:         listenAddr,
 		Handler:      handler,
